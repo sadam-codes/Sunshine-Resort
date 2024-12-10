@@ -115,6 +115,40 @@ app.get("/api/rooms", (req, res) => {
   });
 });
 
+// Delete data from a specific table based on ID
+app.delete("/api/:section/:id", (req, res) => {
+  const { section, id } = req.params;
+
+  // Construct the SQL query to delete data from the appropriate table
+  const query = `DELETE FROM ${section} WHERE id = ?`;
+
+  // Run the query
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error("Error deleting data:", err);
+      return res.status(500).json({ error: "Error deleting data" });
+    }
+    res.json({ message: "Data deleted successfully" });
+  });
+});
+// Update data in a specific table based on ID
+app.put("/api/:section/:id", (req, res) => {
+  const { section, id } = req.params;
+  const data = req.body;  // Assuming the updated data is in the body of the request
+  
+  // Construct the SQL query to update data in the appropriate table
+  const query = `UPDATE ${section} SET ? WHERE id = ?`;
+  
+  // Run the query
+  db.query(query, [data, id], (err, result) => {
+    if (err) {
+      console.error("Error updating data:", err);
+      return res.status(500).json({ error: "Error updating data" });
+    }
+    res.json({ message: "Data updated successfully" });
+  });
+});
+
 // Start server
 const PORT = 5000;
 app.listen(PORT, () => {

@@ -10,9 +10,16 @@ function App() {
   const [payments, setPayments] = useState([]);
   const [roomServices, setRoomServices] = useState([]);
   const [staff, setStaff] = useState([]);
+  
+  const [currentData, setCurrentData] = useState(null);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
-    // Fetch data for each section from the API
+    fetchData();
+  }, []);
+
+  // Fetch data from API
+  const fetchData = () => {
     axios.get("http://localhost:5000/api/guests")
       .then((response) => setGuests(response.data))
       .catch((error) => console.error("Error fetching guests:", error));
@@ -44,55 +51,102 @@ function App() {
     axios.get("http://localhost:5000/api/staff")
       .then((response) => setStaff(response.data))
       .catch((error) => console.error("Error fetching staff:", error));
-  }, []);
+  };
+
+    // Handle delete operation
+    const deleteData = (section, id) => {
+      const confirmDelete = window.confirm("Are you sure you want to delete this?");
+      if (confirmDelete) {
+        axios.delete(`http://localhost:5000/api/${section.toLowerCase()}/${id}`)
+          .then(() => {
+            // Update frontend after deletion
+            if (section === "guests") {
+              setGuests(prevGuests => prevGuests.filter(item => item.id !== id));
+            } else if (section === "rooms") {
+              setRooms(prevRooms => prevRooms.filter(item => item.id !== id));
+            }
+          })
+          .catch((error) => {
+            console.error("Error deleting item:", error);
+          });
+      }
+    };
+  
+    // Handle edit operation (open input fields with current data)
+    const editData = (section, item) => {
+      setCurrentData(item);
+      setEditing(true);
+    };
+  
+    // Handle updating data
+    const updateData = (section) => {
+      axios.put(`http://localhost:5000/api/${section.toLowerCase()}/${currentData.id}`, currentData)
+        .then(() => {
+          fetchData(); // Refresh data after update
+          setEditing(false); // Close the edit form
+        })
+        .catch((error) => {
+          console.error("Error updating item:", error);
+        });
+    };
 
   return (
     <div className="p-8 min-h-screen">
       <h1 className="text-4xl font-bold text-center mb-8 text-black">
-        Hotel Management System
+        Sunshine Resort
       </h1>
 
       {/* Guests Table */}
-      <TableSection title="Guests" data={guests} />
+      <TableSection title="Guests" data={guests} editData={editData} deleteData={deleteData} />
 
       {/* Room Types Table */}
-      <TableSection title="Room Types" data={roomTypes} />
+      <TableSection title="Room Types" data={roomTypes} editData={editData} deleteData={deleteData} />
 
       {/* Rooms Table */}
-      <TableSection title="Rooms" data={rooms} />
+      <TableSection title="Rooms" data={rooms} editData={editData} deleteData={deleteData} />
 
       {/* Bookings Table */}
-      <TableSection title="Bookings" data={bookings} />
+      <TableSection title="Bookings" data={bookings} editData={editData} deleteData={deleteData} />
 
       {/* Extra Services Table */}
-      <TableSection title="Extra Services" data={extraServices} />
+      <TableSection title="Extra Services" data={extraServices} editData={editData} deleteData={deleteData} />
 
       {/* Payments Table */}
-      <TableSection title="Payments" data={payments} />
+      <TableSection title="Payments" data={payments} editData={editData} deleteData={deleteData} />
 
       {/* Room Services Table */}
-      <TableSection title="Room Services" data={roomServices} />
+      <TableSection title="Room Services" data={roomServices} editData={editData} deleteData={deleteData} />
 
       {/* Staff Table */}
-      <TableSection title="Staff" data={staff} />
+      <TableSection title="Staff" data={staff} editData={editData} deleteData={deleteData} />
+
+      {/* Edit Modal */}
+      {editing && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-md w-1/2">
+            <h2 className="text-xl font-semibold mb-4">Edit {currentData?.name}</h2>
+            {/* Render form based on the data structure */}
+            <input
+              type="text"
+              value={currentData.name}
+              onChange={(e) => setCurrentData({ ...currentData, name: e.target.value })}
+              className="w-full px-4 py-2 border rounded mb-4"
+            />
+            <button onClick={() => updateData('guests')} className="bg-blue-500 text-white px-4 py-2 rounded">
+              Update
+            </button>
+            <button onClick={() => setEditing(false)} className="bg-gray-500 text-white px-4 py-2 rounded ml-2">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// Reusable TableSection Component with LocaleString Formatting
-const TableSection = ({ title, data }) => {
-  // Dynamically extract column names from the first object (keys of the object)
+const TableSection = ({ title, data, editData, deleteData }) => {
   const columns = data.length > 0 ? Object.keys(data[0]) : [];
-
-  // Function to format any date field to LocaleString
-  const formatDate = (value) => {
-    // Check if value is a valid date
-    const date = new Date(value);
-    if (!isNaN(date)) {
-      return date.toLocaleString(); // Return the date in localized string format
-    }
-    return value; // Return value as is if it's not a date
-  };
 
   return (
     <section className="mb-12 mx-auto container">
@@ -103,9 +157,10 @@ const TableSection = ({ title, data }) => {
             <tr>
               {columns.map((col, index) => (
                 <th key={index} className="border border-black px-4 py-2">
-                  {col.replace(/([A-Z])/g, ' $1').toUpperCase()} {/* Format column headers */}
+                  {col.replace(/([A-Z])/g, ' $1').toUpperCase()}
                 </th>
               ))}
+              <th className="border border-black px-4 py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -114,14 +169,28 @@ const TableSection = ({ title, data }) => {
                 <tr key={rowIndex}>
                   {columns.map((col, colIndex) => (
                     <td key={colIndex} className="border border-black px-4 py-2">
-                      {formatDate(item[col])} {/* Format date fields */}
+                      {item[col]}
                     </td>
                   ))}
+                  <td className="border border-black px-4 py-2">
+                    <button
+                      onClick={() => editData(title, item)}
+                      className="bg-black text-white px-4 py-2 rounded mr-2"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => deleteData(title, item.id)}
+                      className="bg-black text-white px-4 py-2 rounded"
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length} className="border border-black px-4 py-2 text-center">
+                <td colSpan={columns.length + 1} className="border border-black px-4 py-2 text-center">
                   No data available
                 </td>
               </tr>
