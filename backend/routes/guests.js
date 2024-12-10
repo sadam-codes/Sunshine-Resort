@@ -35,26 +35,24 @@ router.post("/check-duplicate", (req, res) => {
     res.status(200).json({ isDuplicate: false });
   });
 });
+
 // Add a new guest
 router.post("/", (req, res) => {
-  const { FirstName, LastName, Phone, Email, Address, CNIC } = req.body;
+  const { FirstName, LastName, Phone, Email, Address, CNIC, roomType } = req.body;
 
   // Ensure all required fields are provided
-  if (!FirstName || !LastName || !Phone || !Email || !CNIC) {
-    return res
-      .status(400)
-      .json({
-        error:
-          "All fields (FirstName, LastName, Phone, Email, CNIC) are required.",
-      });
+  if (!FirstName || !LastName || !Phone || !Email || !CNIC || !roomType) {
+    return res.status(400).json({
+      error: "All fields (FirstName, LastName, Phone, Email, CNIC, roomType) are required.",
+    });
   }
 
   const sql =
-    "INSERT INTO Guest (FirstName, LastName, Phone, Email, Address, CNIC) VALUES (?, ?, ?, ?, ?, ?)";
+    "INSERT INTO Guest (FirstName, LastName, Phone, Email, Address, CNIC, roomType) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
   db.query(
     sql,
-    [FirstName, LastName, Phone, Email, Address, CNIC],
+    [FirstName, LastName, Phone, Email, Address, CNIC, roomType],
     (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
       res.status(201).json({
@@ -68,24 +66,21 @@ router.post("/", (req, res) => {
 // Update a guest
 router.put("/:id", (req, res) => {
   const { id } = req.params;
-  const { FirstName, LastName, Phone, Email, Address, CNIC } = req.body;
+  const { FirstName, LastName, Phone, Email, Address, CNIC, roomType } = req.body;
 
   // Ensure all required fields are provided
-  if (!FirstName || !LastName || !Phone || !Email || !CNIC) {
-    return res
-      .status(400)
-      .json({
-        error:
-          "All fields (FirstName, LastName, Phone, Email, CNIC) are required.",
-      });
+  if (!FirstName || !LastName || !Phone || !Email || !CNIC || !roomType) {
+    return res.status(400).json({
+      error: "All fields (FirstName, LastName, Phone, Email, CNIC, roomType) are required.",
+    });
   }
 
   const sql =
-    "UPDATE Guest SET FirstName = ?, LastName = ?, Phone = ?, Email = ?, Address = ?, CNIC = ? WHERE GuestID = ?";
+    "UPDATE Guest SET FirstName = ?, LastName = ?, Phone = ?, Email = ?, Address = ?, CNIC = ?, roomType = ? WHERE GuestID = ?";
 
   db.query(
     sql,
-    [FirstName, LastName, Phone, Email, Address, CNIC, id],
+    [FirstName, LastName, Phone, Email, Address, CNIC, roomType, id],
     (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
       if (result.affectedRows === 0)
