@@ -1,118 +1,158 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-function Guests() {
-  const [guests, setGuests] = useState([]);
-  const [newGuest, setNewGuest] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
+const AddGuestForm = () => {
+  const [guest, setGuest] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    room: '',
+    checkInDate: '',
+    checkOutDate: '',
+    paymentMethod: '',
+    paymentAmount: '',
   });
+  const [rooms, setRooms] = useState([]);
 
+  // Fetch available rooms from backend
   useEffect(() => {
-    fetchGuests();
+    axios.get('http://localhost:5000/api/rooms')
+      .then(response => setRooms(response.data))
+      .catch(error => console.error('Error fetching rooms:', error));
   }, []);
 
-  const fetchGuests = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/api/guests");
-      setGuests(response.data);
-    } catch (error) {
-      console.error("Error fetching guests:", error);
-    }
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setGuest((prevGuest) => ({
+      ...prevGuest,
+      [name]: value,
+    }));
   };
 
-  const addGuest = async (e) => {
+  // Handle form submission
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      await axios.post("http://localhost:5000/api/guests", newGuest);
-      fetchGuests();
-      setNewGuest({ name: "", email: "", phone: "", address: "" });
-    } catch (error) {
-      console.error("Error adding guest:", error);
-    }
+
+    axios.post('http://localhost:5000/api/guests', guest)
+      .then((response) => {
+        console.log('Guest added successfully:', response.data);
+      })
+      .catch((error) => {
+        console.error('Error adding guest:', error);
+      });
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-5">
-      <h1 className="text-3xl font-bold mb-6 text-center text-indigo-600">Guest Management</h1>
-
-      {/* Guest Form */}
-      <form
-        onSubmit={addGuest}
-        className="bg-gray-100 p-6 rounded-md shadow-md mb-8"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-semibold mb-6">Add New Guest</h1>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Personal Details */}
+        <div className="card bg-white shadow-lg rounded-lg p-6">
+          <h3 className="text-xl font-medium text-gray-800 mb-4">Personal Details</h3>
           <input
             type="text"
-            placeholder="Name"
-            value={newGuest.name}
-            onChange={(e) => setNewGuest({ ...newGuest, name: e.target.value })}
-            className="p-3 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            required
+            name="name"
+            placeholder="Full Name"
+            value={guest.name}
+            onChange={handleChange}
+            className="input input-bordered w-full mb-4"
           />
           <input
             type="email"
-            placeholder="Email"
-            value={newGuest.email}
-            onChange={(e) =>
-              setNewGuest({ ...newGuest, email: e.target.value })
-            }
-            className="p-3 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            required
+            name="email"
+            placeholder="Email Address"
+            value={guest.email}
+            onChange={handleChange}
+            className="input input-bordered w-full mb-4"
+          />
+          <input
+            type="tel"
+            name="phone"
+            placeholder="Phone Number"
+            value={guest.phone}
+            onChange={handleChange}
+            className="input input-bordered w-full mb-4"
           />
           <input
             type="text"
-            placeholder="Phone"
-            value={newGuest.phone}
-            onChange={(e) =>
-              setNewGuest({ ...newGuest, phone: e.target.value })
-            }
-            className="p-3 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            required
-          />
-          <input
-            type="text"
+            name="address"
             placeholder="Address"
-            value={newGuest.address}
-            onChange={(e) =>
-              setNewGuest({ ...newGuest, address: e.target.value })
-            }
-            className="p-3 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            required
+            value={guest.address}
+            onChange={handleChange}
+            className="input input-bordered w-full"
           />
         </div>
-        <button
-          type="submit"
-          className="w-full bg-indigo-500 text-white py-3 rounded hover:bg-indigo-600 transition"
-        >
-          Add Guest
-        </button>
-      </form>
 
-      {/* Guests List */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {guests.map((guest) => (
-          <div
-            key={guest.guest_id}
-            className="bg-white p-6 rounded-lg shadow-md transform hover:scale-105 transition duration-300 ease-in-out"
+        {/* Room Selection */}
+        <div className="card bg-white shadow-lg rounded-lg p-6">
+          <h3 className="text-xl font-medium text-gray-800 mb-4">Room Selection</h3>
+          <select
+            name="room"
+            value={guest.room}
+            onChange={handleChange}
+            className="select select-bordered w-full mb-4"
           >
-            <h3 className="text-xl font-semibold text-indigo-600 mb-2">{guest.name}</h3>
-            <p className="text-gray-500 mb-2">
-              <strong>Email:</strong> {guest.email}
-            </p>
-            <p className="text-gray-500 mb-2">
-              <strong>Phone:</strong> {guest.phone}
-            </p>
-            <p className="text-gray-500">
-              <strong>Address:</strong> {guest.address}
-            </p>
-          </div>
-        ))}
-      </div>
+            <option value="">Select Room</option>
+            {rooms.map((room) => (
+              <option key={room.room_id} value={room.room_id}>
+                {room.room_number} - {room.type}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Booking Details */}
+        <div className="card bg-white shadow-lg rounded-lg p-6">
+          <h3 className="text-xl font-medium text-gray-800 mb-4">Booking Details</h3>
+          <input
+            type="date"
+            name="checkInDate"
+            value={guest.checkInDate}
+            onChange={handleChange}
+            className="input input-bordered w-full mb-4"
+          />
+          <input
+            type="date"
+            name="checkOutDate"
+            value={guest.checkOutDate}
+            onChange={handleChange}
+            className="input input-bordered w-full"
+          />
+        </div>
+
+        {/* Payment Details */}
+        <div className="card bg-white shadow-lg rounded-lg p-6">
+          <h3 className="text-xl font-medium text-gray-800 mb-4">Payment Details</h3>
+          <select
+            name="paymentMethod"
+            value={guest.paymentMethod}
+            onChange={handleChange}
+            className="select select-bordered w-full mb-4"
+          >
+            <option value="">Select Payment Method</option>
+            <option value="Credit Card">Credit Card</option>
+            <option value="PayPal">PayPal</option>
+            <option value="Cash">Cash</option>
+          </select>
+          <input
+            type="number"
+            name="paymentAmount"
+            placeholder="Payment Amount"
+            value={guest.paymentAmount}
+            onChange={handleChange}
+            className="input input-bordered w-full"
+          />
+        </div>
+
+        {/* Submit Button */}
+        <div className="text-center">
+          <button type="submit" className="btn btn-primary mt-6">Submit</button>
+        </div>
+      </form>
     </div>
   );
-}
+};
 
-export default Guests;
+export default AddGuestForm;
