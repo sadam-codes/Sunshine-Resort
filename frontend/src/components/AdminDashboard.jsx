@@ -40,7 +40,7 @@ function AdminDashboard() {
 
         <div className="bg-yellow-200 p-6 rounded-lg shadow text-center">
           <h2 className="text-2xl font-semibold mb-2">Guests Last Month</h2>
-          <p className="text-4xl font-bold">{stats.guestsLastMonth}</p>
+          <p className="text-4xl font-bold">{stats.totalGuests}</p>
         </div>
 
         <div className="bg-purple-200 p-6 rounded-lg shadow text-center">
