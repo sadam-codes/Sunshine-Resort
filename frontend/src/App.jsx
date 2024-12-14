@@ -1,22 +1,13 @@
-// App.js (Frontend)
-
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Dashboard from "./components/Dashboard"; 
-import AddGuest from "./components/Guests"; 
+import GuestDetails from "./components/GuestDetails";
+import AddGuestForm from "./components/AddGuestForm";
 
-
-
-const App = () => {
+function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/guests" element={<Dashboard />} />
-        <Route path="/add-guest" element={<AddGuest />} />
-
-      </Routes>
-    </Router>
+    <div className="container mx-auto p-8">
+      <GuestDetails />
+    </div>
   );
-};
+}
 
 export default App;
