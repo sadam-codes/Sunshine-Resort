@@ -33,7 +33,7 @@ router.get("/api/guests", (req, res) => {
   });
 });
 
-app.post("/api/guests", (req, res) => {
+router.post("/api/guests", (req, res) => {
   const {
     guest_name,
     email,
@@ -47,7 +47,6 @@ app.post("/api/guests", (req, res) => {
     payment_date,
   } = req.body;
 
-  // Ensure data is being passed correctly
   if (
     !guest_name ||
     !email ||
@@ -63,9 +62,53 @@ app.post("/api/guests", (req, res) => {
     return res.status(400).send("Missing required fields");
   }
 
-  // Save the guest data to the database here...
+  // Insert the guest data into the `guests` table
+  const insertGuestQuery = `
+    INSERT INTO guests (name, email, phone, address, room_id)
+    VALUES (?, ?, ?, ?, (SELECT id FROM rooms WHERE room_number = ? AND type = ? LIMIT 1));
+  `;
 
-  res.status(200).send("Guest added successfully!");
+  db.query(
+    insertGuestQuery,
+    [guest_name, email, phone, address, room_number, room_type],
+    (err, guestResult) => {
+      if (err) {
+        console.error("Error inserting guest data:", err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+
+      const guestId = guestResult.insertId;
+
+      // Insert booking data
+      const insertBookingQuery = `
+        INSERT INTO bookings (guest_id, check_in, check_out)
+        VALUES (?, ?, ?);
+      `;
+
+      db.query(insertBookingQuery, [guestId, check_in, check_out], (err) => {
+        if (err) {
+          console.error("Error inserting booking data:", err);
+          return res.status(500).json({ error: "Internal server error" });
+        }
+
+        // Insert payment data
+        const insertPaymentQuery = `
+          INSERT INTO payments (guest_id, amount, payment_date)
+          VALUES (?, ?, ?);
+        `;
+
+        db.query(insertPaymentQuery, [guestId, amount, payment_date], (err) => {
+          if (err) {
+            console.error("Error inserting payment data:", err);
+            return res.status(500).json({ error: "Internal server error" });
+          }
+
+          res.status(200).send("Guest added successfully!");
+        });
+      });
+    }
+  );
 });
+
 
 module.exports = router;
