@@ -14,7 +14,6 @@ const AddGuestForm = ({ onGuestAdded }) => {
     amount: "",
     payment_date: "",
   });
-  console.log(formData);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,10 +21,12 @@ const AddGuestForm = ({ onGuestAdded }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
+      // Send POST request with the form data
       await axios.post("http://localhost:5000/api/guests", formData, {
         headers: {
-          "Content-Type": "application/json", // Ensure this is set
+          "Content-Type": "application/json",
         },
       });
       alert("Guest added successfully!");
@@ -47,7 +48,6 @@ const AddGuestForm = ({ onGuestAdded }) => {
       alert("Error adding guest.");
     }
   };
-  
 
   return (
     <form
@@ -76,6 +76,7 @@ const AddGuestForm = ({ onGuestAdded }) => {
           required
           className="border p-2"
         />
+
         <input
           type="text"
           name="phone"
@@ -85,6 +86,7 @@ const AddGuestForm = ({ onGuestAdded }) => {
           required
           className="border p-2"
         />
+
         <input
           type="text"
           name="address"
@@ -94,6 +96,7 @@ const AddGuestForm = ({ onGuestAdded }) => {
           required
           className="border p-2"
         />
+
         <input
           type="text"
           name="room_number"
@@ -103,6 +106,7 @@ const AddGuestForm = ({ onGuestAdded }) => {
           required
           className="border p-2"
         />
+
         <input
           type="text"
           name="room_type"
@@ -112,6 +116,7 @@ const AddGuestForm = ({ onGuestAdded }) => {
           required
           className="border p-2"
         />
+
         <input
           type="date"
           name="check_in"
@@ -120,6 +125,7 @@ const AddGuestForm = ({ onGuestAdded }) => {
           required
           className="border p-2"
         />
+
         <input
           type="date"
           name="check_out"
@@ -128,6 +134,7 @@ const AddGuestForm = ({ onGuestAdded }) => {
           required
           className="border p-2"
         />
+
         <input
           type="number"
           name="amount"
@@ -137,6 +144,7 @@ const AddGuestForm = ({ onGuestAdded }) => {
           required
           className="border p-2"
         />
+
         <input
           type="date"
           name="payment_date"
