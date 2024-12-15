@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const AddGuestForm = ({ onGuestAdded }) => {
@@ -16,6 +16,33 @@ const AddGuestForm = ({ onGuestAdded }) => {
     payment_date: "",
   });
 
+  // Calculate the amount based on check-in and check-out dates
+  useEffect(() => {
+    const calculateAmount = () => {
+      const dailyRate = 5000;
+      if (formData.check_in && formData.check_out) {
+        const checkInDate = new Date(formData.check_in);
+        const checkOutDate = new Date(formData.check_out);
+        const timeDifference = checkOutDate - checkInDate;
+
+        if (timeDifference >= 0) {
+          const days = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
+          setFormData((prevData) => ({
+            ...prevData,
+            amount: days * dailyRate,
+          }));
+        } else {
+          setFormData((prevData) => ({
+            ...prevData,
+            amount: "",
+          }));
+        }
+      }
+    };
+
+    calculateAmount();
+  }, [formData.check_in, formData.check_out]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -24,7 +51,6 @@ const AddGuestForm = ({ onGuestAdded }) => {
     e.preventDefault();
 
     try {
-      // Send POST request with the form data
       await axios.post("http://localhost:5000/api/guests", formData, {
         headers: {
           "Content-Type": "application/json",
@@ -88,6 +114,7 @@ const AddGuestForm = ({ onGuestAdded }) => {
           required
           className="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+
         <input
           type="text"
           name="id_card"
@@ -128,25 +155,39 @@ const AddGuestForm = ({ onGuestAdded }) => {
           className="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
-        <input
-          type="date"
-          name="check_in"
-          placeholder="Check in date"
-          value={formData.check_in}
-          onChange={handleChange}
-          required
-          className="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div className="flex">
+          <label
+            htmlFor="check_in"
+            className="text-sm font-semibold text-gray-700 flex mr-12 self-center"
+          >
+            Select Check-in Date
+          </label>
+          <input
+            type="date"
+            name="check_in"
+            value={formData.check_in}
+            onChange={handleChange}
+            required
+            className="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
-        <input
-          type="date"
-          name="check_out"
-          placeholder="Check out date"
-          value={formData.check_out}
-          onChange={handleChange}
-          required
-          className="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div className="flex">
+          <label
+            htmlFor="check_out"
+            className="text-sm font-semibold text-gray-700 flex mr-12 self-center"
+          >
+            Select Check-out Date
+          </label>
+          <input
+            type="date"
+            name="check_out"
+            value={formData.check_out}
+            onChange={handleChange}
+            required
+            className="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
         <input
           type="number"
@@ -156,16 +197,25 @@ const AddGuestForm = ({ onGuestAdded }) => {
           onChange={handleChange}
           required
           className="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          readOnly
         />
 
-        <input
-          type="date"
-          name="payment_date"
-          value={formData.payment_date}
-          onChange={handleChange}
-          required
-          className="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div className="flex">
+          <label
+            htmlFor="payment_date"
+            className="text-sm font-semibold text-gray-700 flex mr-12 self-center"
+          >
+            Select Payment Date
+          </label>
+          <input
+            type="date"
+            name="payment_date"
+            value={formData.payment_date}
+            onChange={handleChange}
+            required
+            className="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
       </div>
 
       <button

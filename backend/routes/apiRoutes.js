@@ -39,7 +39,7 @@ router.post("/api/guests", (req, res) => {
     guest_name,
     email,
     phone,
-    id_card, 
+    id_card,
     address,
     room_number,
     room_type,
@@ -88,7 +88,7 @@ router.post("/api/guests", (req, res) => {
 
     db.query(
       insertGuestQuery,
-      [guest_name, email, phone, id_card,  address, roomId],
+      [guest_name, email, phone, id_card, address, roomId],
       (err, guestResult) => {
         if (err) {
           console.error("Error inserting guest data:", err);
